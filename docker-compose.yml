@@ -1,0 +1,12 @@
+services:
+  api:
+    build:
+      context: .
+      args:
+        INSTALL_DIARIZATION: ${INSTALL_DIARIZATION:-false}
+    image: video-transcriber:latest
+    container_name: video-transcriber-api
+    ports:
+      - "${HOST_PORT:-8001}:8000"
+    environment:
+      HF_TOKEN: ${HF_TOKEN:-}
