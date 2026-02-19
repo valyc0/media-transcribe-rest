@@ -2,17 +2,25 @@
 set -euo pipefail
 
 usage() {
-  echo "Uso: $0 [--full-text] /percorso/video.mp4 [model_name]"
+  echo "Uso: $0 [--full-text|-f|--interlocutors|-i] /percorso/video.mp4 [model_name]"
   echo "Esempi:"
   echo "  $0 /home/valerio/lavoro/appo/aa/videoplayback.mp4 small"
   echo "  $0 --full-text /home/valerio/lavoro/appo/aa/videoplayback.mp4 small"
+  echo "  $0 -f /home/valerio/lavoro/appo/aa/videoplayback.mp4 small"
+  echo "  $0 --interlocutors /home/valerio/lavoro/appo/aa/videoplayback.mp4 small"
+  echo "  $0 -i /home/valerio/lavoro/appo/aa/videoplayback.mp4 small"
 }
 
 FULL_TEXT=false
+INTERLOCUTORS=false
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --full-text)
+    --full-text|-f)
       FULL_TEXT=true
+      shift
+      ;;
+    --interlocutors|-i)
+      INTERLOCUTORS=true
       shift
       ;;
     -h|--help)
@@ -38,6 +46,9 @@ OUT_FILE="${OUT_FILE:-transcription_$(date +%Y%m%d_%H%M%S).json}"
 ENDPOINT_PATH="/transcribe"
 if [[ "$FULL_TEXT" == "true" ]]; then
   ENDPOINT_PATH="/transcribe/full-text"
+fi
+if [[ "$INTERLOCUTORS" == "true" ]]; then
+  ENDPOINT_PATH="/transcribe/interlocutors"
 fi
 
 if [[ ! -f "$VIDEO_PATH" ]]; then

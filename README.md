@@ -69,6 +69,15 @@ cd /home/valerio/lavoro/appo/aa
 docker compose up --build
 ```
 
+Con endpoint interlocutori LLM (Ollama locale):
+
+```bash
+cd /home/valerio/lavoro/appo/aa
+export OLLAMA_BASE_URL=http://host.docker.internal:11434
+export OLLAMA_MODEL=llama3.1:8b
+docker compose up --build
+```
+
 Avvio con diarizzazione speaker:
 
 ```bash
@@ -158,6 +167,40 @@ curl -X POST "http://localhost:8001/transcribe/full-text?model_name=small" \
   -H "Content-Type: multipart/form-data" \
   -F "file=@/percorso/video.mp4"
 ```
+
+### Trascrizione con interlocutori LLM
+
+Identifica gli interlocutori (`interlocutore_1`, `interlocutore_2`, ...) usando una LLM locale via Ollama e restituisce i tempi per ogni intervento.
+
+```http
+POST /transcribe/interlocutors
+Content-Type: multipart/form-data
+```
+
+Parametri:
+- `file`: file video (mp4, mov, mkv, ...)
+- `model_name` (query, opzionale): modello Whisper (`tiny`, `base`, `small`, `medium`, `large-v3`), default `small`
+
+Variabili ambiente Ollama:
+- `OLLAMA_BASE_URL` (default `http://host.docker.internal:11434`)
+- `OLLAMA_MODEL` (default `llama3.1:8b`)
+- `OLLAMA_TIMEOUT_SECONDS` (default `600`)
+- `OLLAMA_REQUIRED` (default `true`) se `true`, in caso di errore LLM l'endpoint risponde `503`
+
+Esempio con `curl`:
+
+```bash
+curl -X POST "http://localhost:8001/transcribe/interlocutors?model_name=small" \
+  -H "accept: application/json" \
+  -H "Content-Type: multipart/form-data" \
+  -F "file=@/percorso/video.mp4"
+```
+
+Campi principali della risposta:
+- `extracted_text_python`: testo completo estratto da Whisper/Faster-Whisper (Python)
+- `llm_chunks`: chunk temporali con `minute_start`, `minute_end` e `interlocutors` (`interlocutore_1`, `interlocutore_2`, ...)
+- `chunks`: alias compatibile di `llm_chunks`
+- `processing_times_seconds`: tempi in secondi con `python_text_processing`, `llm_processing`, `total`
 
 ## Esempio risposta JSON
 
